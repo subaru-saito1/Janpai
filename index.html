@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>雀パイブロック エディタ</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Subaru Saito">
+    <meta name="description" content="Mahjong Block Puzzle Editor.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/janpai.css?2022123001">
+
+    <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script defer src="js/classes.js?2022123001"></script>
+    <script defer src="js/action.js?2022123001"></script>
+    <script defer src="js/front.js?202212300"></script>
+    <script defer src="js/init.js?2022123001"></script>
+  </head>
+
+  <body>
+    <header>
+      <div id="header_in">
+        <h1>雀パイブロック エディタ</h1>
+        <p class="header_note">Ver 0.1</p>
+        <p class="header_note">雀パイブロック 作成支援ツール</p>
+        <p><a href="howtouse.html" target="_blank">操作方法</a></p>
+      </div>
+    </header>
+
+    <main>
+      <form id="top_form">
+        <!-- 新規作成フォーム -->
+        <div id="newfile_form">
+          <label for="newfile_hsize">よこ</label>
+          <input type="number" id="newfile_elems" title="横のサイズ"
+                 min="1" max="99" step="1" value="14">
+          <br>
+          <label for="newfile_vsize">たて</label>
+          <input type="number" id="newfile_items" title="縦のサイズ"
+                 min="1" max="99" step="1" value="7">
+          <br>
+          <input type="button" id="newfile_ok" value="新規作成">
+        </div>
+      
+        <!-- ファイルメニュー -->
+        <div id="filemenu_form">
+          <label for="filemenu">ファイル</label>
+          <select id="filemenu" name="filemenu">
+            <option value="default">--</option>
+            <option value="writeimg">画像出力</option>
+            <option value="writeurl">URL形式出力</option>
+            <option value="readurl">URL形式読込</option>
+            <option value="writejson">JSON形式出力</option>
+            <option value="readjson">JSON形式読込</option>
+          </select>
+          <input type="button" id="filemenu_go" value="実行">
+          <br>
+
+          <!-- サイズ設定フォーム -->
+          <label for="setsize">サイズ</label>
+          <input type="number" id="setsize" title="サイズを設定します"
+                 min="8" max="64" step="1" value="24">
+          <br>
+        </div>
+      </form>
+
+      <!-- キャンバス本体 -->
+      <div id="canvas_wrapper">
+        <canvas width="350" height="350">
+          canvasタグ未対応です。
+        </canvas>
+      </div>
+  
+
+      <!-- 下編集フォーム -->
+      <form id="bottom_form">
+        <div id="switchmode_form">
+          <input type="radio" name="modeselect" id="opform_qmode" value="question" checked
+                 title="問題入力モード(F2)">
+          <label for="opform_qmode">問題入力</label>
+          <br>
+          <input type="radio" name="modeselect" id="opform_amode" value="answer"
+                 title="解答入力モード(F2)">
+          <label for="opform_amode">解答入力</label>
+        </div>
+        <div id="edit_form">
+          <button type="button" name="undo" id="opform_undo" title="操作を一つ戻します">
+            <i class="fas fa-undo"></i>
+          </button>
+          <button type="button" name="redo" id="opform_redo" title="操作を一つ進めます">
+            <i class="fas fa-redo"></i>
+          </button>
+        </div>
+        <div id="clear_form">
+          <button type="button" name="clear" id="opform_clear" title="解答を消去します">
+            解答消去
+          </button>
+        </div>
+      </form>
+
+      <!-- ポップアップ群 -->
+      <div class="popup_overlay" id="popup_writeimg">
+        <div class="popup_content">
+          <p>画像保存</p>
+          <form onsubmit="$('#writeimg_ok').click(); return false;">
+            <input type="text" id="writeimg_filename" size="20" value="janpai.png"><br>
+            <input type="button" id="writeimg_ok" value="OK">
+            <input type="button" id="writeimg_ng" value="キャンセル">
+          </form>
+        </div>
+      </div>
+
+      <div class="popup_overlay" id="popup_writeurl">
+        <div class="popup_content">
+          <p>URL出力</p>
+          <form>
+            <textarea id="display_url" rows="5" cols="32" readonly></textarea><br>
+            <input type="button" id="writeurl_ok" value="OK">
+          </form>
+        </div>
+      </div>
+
+      <div class="popup_overlay" id="popup_readurl">
+        <div class="popup_content">
+          <p>URL読込</p>
+          <form>
+            <textarea id="input_url" rows="5" cols="32"></textarea><br>
+            <input type="button" id="readurl_ok" value="OK">
+            <input type="button" id="readurl_ng" value="キャンセル">
+          </form>
+        </div>
+      </div>
+
+      <div class="popup_overlay" id="popup_writejson">
+        <div class="popup_content">
+          <p>JSON形式で保存</p>
+          <form onsubmit="$('#writejson_ok').click(); return false;">
+            <input type="text" id="writejson_filename" size="20" value="janpai.json"><br>
+            <input type="button" id="writejson_ok" value="OK">
+            <input type="button" id="writejson_ng" value="キャンセル">
+          </form>
+        </div>
+      </div>
+
+      <div class="popup_overlay" id="popup_readjson">
+        <div class="popup_content">
+          <p>JSON形式で読込</p>
+          <form>
+            <input type="file" id="readjson_filename"><br>
+            <input type="button" id="readjson_ok" value="OK">
+            <input type="button" id="readjson_ng" value="キャンセル">
+          </form>
+        </div>
+      </div>
+
+      <!-- パズル特有のポップアップ、マウス入力用の牌セット表示 -->
+      <div class="popup_overlay" id="popup_paiform">
+        <div class="popup_content">
+          <p id="paiform_label">牌入力</p>
+          <form onsubmit="$('#paiform_ok').click(); return false;">
+            <p>TODO:ここに牌入力パネルを作る</p>
+            <input type="button" id="paiform_ok" value="OK">
+            <input type="button" id="paiform_ng" value="キャンセル">
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div id="footer_in">
+        <p><a href="https://subaru-saito1.github.io/subaru_home/index.html">トップに戻る</a></p>
+        <p><small> Copyright 2023~. Subaru Saito, All Rights Reserved. </small></p>
+      </div>
+    </footer>
+
+  </body>
+</html>
