@@ -35,6 +35,7 @@ class Board {
       for (let j = 0; j < this.hsize; j++) {
         let cell_obj = {};
         cell_obj.contents = 'd0';       // 裏牌
+        cell_obj.contents = this.generatePaiName();   // テスト用
         this.cells[i].push(cell_obj);
       }
     }
@@ -305,6 +306,23 @@ class Board {
    * 境界配列から牌ブロックを作る
    * 役の判定　こいつは別にクラス作った方がいいかも
    */
+
+
+  /** ===================== ヘルパー =========================== */
+  /**
+   * ランダムな牌文字列を生成（遊び用、本編に無関係）
+   */
+  generatePaiName() {
+    const slist = ['p', 's', 'm', 'z'];
+    let s = slist[Math.floor(Math.random() * slist.length)]
+    let n = 0;
+    if (s == 'z') {
+      n = Math.floor(Math.random() * 7) + 1;
+    } else {
+      n = Math.floor(Math.random() * 9) + 1;
+    }
+    return s + n;
+  }
 }
 
 
@@ -331,8 +349,9 @@ class Drawer {
       'bd': '#00ff00',
     };
     this.highlight_cell = [];  // ハイライトするセル
-    // 牌画像のオフセット位置を管理するリスト
-    this.image_offsets = {};
+
+    this.img = null;          // 牌画像
+    this.image_offsets = {};  // 牌画像のオフセット位置を管理する辞書
   }
 
   /**
@@ -340,11 +359,10 @@ class Drawer {
    * Drawerインスタンス生成時、awaitを付けて呼ぶ。
    */
   async loadImage() {
-    let img = null;
-    let promise = new Promise(function(resolve) {
-      img = new Image();
-      img.onload = () => {resolve()};
-      img.src = "img/pai.png";
+    let promise = new Promise((resolve) => {
+      this.img = new Image();
+      this.img.onload = () => {resolve()};
+      this.img.src = "img/pai.png";
     });
     await promise;
     this.createImageDict();
@@ -401,6 +419,7 @@ class Drawer {
 
     // 盤面描画
     this.drawCell(board, ctx);
+    this.drawBorder(board, ctx);
   }
 
   /**
@@ -416,9 +435,18 @@ class Drawer {
   }
 
   /**
-   * セル描画関数メイン
+   * 牌描画関数メイン
    */
   drawCell(board, ctx) {
+    for (let i = 0; i < board.vsize; i++) {
+      for (let j = 0; j < board.hsize; j++) {
+        const ofsx = this.offset + this.csize_h * j;
+        const ofsy = this.offset + this.csize_v * i;
+        let [imgofsx, imgofsy] = this.image_offsets[board.cells[i][j].contents];
+        ctx.drawImage(this.img, imgofsx, imgofsy, this.hpx, this.vpx, ofsx, ofsy, this.hpx, this.vpx);
+      }
+    }
+
     // オフセットの計算
     const ofsx = this.offset + (board.maxItemSize + 1) * this.csize;
     const ofsy = this.offset + (board.maxItemSize + 1) * this.csize;
