@@ -19,32 +19,45 @@ class Board {
    * @param {int} vsize 縦のマス数
    */
   constructor(hsize=14, vsize=7) {
-    this.hsize = hsize;
-    this.vsize = vsize;
-    this.initCells();
+    this.hsize = hsize;  // 横マス数
+    this.vsize = vsize;  // 縦マス数
+    this.initCells();    // 盤面
+    this.initBorders();  // 境界線
   }
 
   /**
-   * セルの初期化
-   * 
-   * セルは bi, bj, i, j の四次元配列で管理
+   * 盤面の初期化
    */
   initCells() {
     this.cells = [];
-    for (let bi = 0; bi < this.numElems - 1; bi++) {
+    for (let i = 0; i < this.vsize; i++) {
       this.cells.push([]);
-      for (let bj = 0; bj < this.numElems - 1 - bi; bj++) {
-        this.cells[bi].push([]);
-        for (let i = 0; i < this.numItems; i++) {
-          this.cells[bi][bj].push([]);
-          for (let j = 0; j < this.numItems; j++) {
-            let cell_obj = {};
-            cell_obj.contents = '';   // 空白、o, x
-            cell_obj.textcolor = 3;   // メイン色
-            cell_obj.bgcolor = 0;     // 背景色
-            this.cells[bi][bj][i].push(cell_obj);
-          }
-        }
+      for (let j = 0; j < this.hsize; j++) {
+        let cell_obj = {};
+        cell_obj.contents = 'd0';       // 裏牌
+        this.cells[i].push(cell_obj);
+      }
+    }
+  }
+
+  /**
+   * 境界配列の初期化
+   * 暫定。外枠も番兵として入れるか、中身のデータ構造をどうするか
+   * 今後のブロック分けアルゴリズムの実装による
+   */
+  initBorders() {
+    this.hborders = [];   // 横境界 (v-1 x h のboolean配列)
+    for (let i = 0; i < this.vsize - 1; i++) {
+      this.hborders.push([]);
+      for (let j = 0; j < this.hsize; j++) {
+        this.hborders[i].push(false);
+      }
+    }
+    this.vborders = [];   // 縦境界 (v x h-1 のboolean配列)
+    for (let i = 0; i < this.vsize; i++) {
+      this.vborders.push([]);
+      for (let j = 0; j < this.hsize; j++) {
+        this.vborders[i].push(false);
       }
     }
   }
