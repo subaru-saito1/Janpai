@@ -13,7 +13,7 @@
  */
 class Board {
 
-  /**
+  /** =======================================================
    * コンストラクタ
    * @param {int} hsize 横のマス数
    * @param {int} vsize 縦のマス数
@@ -62,7 +62,7 @@ class Board {
     }
   }
 
-  /**
+  /** ======================================================
    * セルの読み込み
    * ほとんど上のコードの使い回し
    */
@@ -212,7 +212,7 @@ class Board {
     this.initCells();      // セルの初期化
   }
 
-  /**
+  /** ======================================================
    * 現在の解答盤面を消去する
    * color_id: 削除する色
    */
@@ -301,8 +301,10 @@ class Board {
     }
   }
 
-  /* ================= Boardクラス　ユーティリティ ====================== */
-
+  /** ======================= チェッカ ========================
+   * 境界配列から牌ブロックを作る
+   * 役の判定　こいつは別にクラス作った方がいいかも
+   */
 }
 
 
@@ -314,29 +316,28 @@ class Board {
  */
 class Drawer {
 
-  /**
+  /** ================================================
    * コンストラクタ：描画初期値類の設定
-   * 後続のloadImageをチェーンして呼ぶこと。
-   * どうもコンストラクタはasyncに出来ない様子。
    */
   constructor() {
     this.offset = 15;
     this.csize = $('#setsize').val() - 0;
-    this.csize_h = this.csize;
-    this.csize_v = this.csize;
+    this.hpx = 47;
+    this.vpx = 63;
+    this.csize_h = this.hpx;  // todo: csizeを係数として
+    this.csize_v = this.vpx;  // 倍率がかかるように
     this.colors = {
       'bg': '#ffffff',
       'bd': '#00ff00',
     };
-    this.highlight_cell = [];
+    this.highlight_cell = [];  // ハイライトするセル
     // 牌画像のオフセット位置を管理するリスト
-    this.vpx = 63;
-    this.hpx = 47;
     this.image_offsets = {};
   }
 
   /**
    * 麻雀牌の画像素材読込 & 各牌の画像オブジェクト配列を生成
+   * Drawerインスタンス生成時、awaitを付けて呼ぶ。
    */
   async loadImage() {
     let img = null;
@@ -383,7 +384,8 @@ class Drawer {
     }
   }
 
-  /**
+
+  /** ===================================================
    * 描画関数本体
    */
   drawCanvas(board) {
@@ -547,30 +549,4 @@ class Drawer {
     return ((bi == cbi && i == ci) || (bj == cbj && j == cj));
   }
 
-
-  /* ====================== ユーティリティ系 ============================== */
-
-  /**
-   * 文字が数字かどうかチェック。下の関数を併用
-   */
-  isDigit(ch) {
-    return ((ch >= '0') && ch <= '9');
-  }
-  /**
-   * 縦書きの場合、数字を漢数字に直す
-   */
-  convertNum2Kanji(ch) {
-    const kanji = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-    return kanji[parseInt(ch)];
-  }
-
-  /**
-   * HSLの配列の値から Canvas, CSSで使用するHSL文字列を生成
-   */
-  strHsl(hsl_list) {
-    let ret = "hsl(" + hsl_list[0] + ", ";
-    ret += (hsl_list[1] * 100) + "%, ";
-    ret += (hsl_list[2] * 100) + "%)";
-    return ret;
-  }
 }
