@@ -19,13 +19,20 @@ JanpaiEditor.config = {
 }
 JanpaiEditor.drawer = new Drawer();
 
-// URL読込
-let urlquery = location.href.split('?');
-if (urlquery.length > 1) {
-  JanpaiEditor.board.readUrl(urlquery[1]);
-}
-setEventHandler();
-JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
+// 描画オブジェクト生成（画像ロードがあるためasync-await）
+(async function init() {
+  await JanpaiEditor.drawer.loadImage();
+  JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
+
+  // URL読込
+  let urlquery = location.href.split('?');
+  if (urlquery.length > 1) {
+    JanpaiEditor.board.readUrl(urlquery[1]);
+  }
+  setEventHandler();
+})();
+
+
 
 
 /* ======================================================================== */
@@ -73,6 +80,8 @@ function setEventHandler() {
   $('#readjson_ok').click(readJson);
   // キャンセルボタン（ポップアップウィンドウを閉じる）
   $('#writeimg_ng, #readurl_ng, #writejson_ng, #readjson_ng').click(closePopup);
+ 
+  // ======================= 消す
   // テキスト入力用インタフェース
   $('#itemform_ok').click(inputItem);
   $('#elemform_ok').click(inputElement);
@@ -80,6 +89,7 @@ function setEventHandler() {
   $('#subelform_del').click(deleteSubel);
   // キャンセルボタン
   $('#itemform_ng, #elemform_ng, #subelform_ng').click(closePopup);
+  // ===========================
 
   // ページ離脱時の警告
   window.addEventListener('beforeunload', function(evt) {

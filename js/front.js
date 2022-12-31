@@ -10,11 +10,11 @@
  */
 function newFile(evt) {
   if (confirm('新規作成しますか？\n（※この操作は元に戻せません）')) {
-    const numElems = $('#newfile_elems').val();
-    const numItems = $('#newfile_items').val();
+    const hsize = $('#newfile_hsize').val();
+    const vsize = $('#newfile_vsize').val();
     // 盤面新規作成
     JanpaiEditor.astack = new ActionStack();
-    JanpaiEditor.board = new Board(numElems, numItems);
+    JanpaiEditor.board = new Board(hsize, vsize);
     JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
   }
 }
@@ -216,6 +216,7 @@ function clearAnswer(evt) {
  * 盤面クリック
  */
 function clickBoard(evt) {
+  console.log("OH");
   evt.preventDefault();   // 右クリックでメニューが開かないようにする
   // objinfo概要
   // type:cell => bi, bj, i, j の四つ組

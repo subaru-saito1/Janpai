@@ -15,34 +15,13 @@ class Board {
 
   /**
    * コンストラクタ
-   * @param {int} numElems 要素数
-   * @param {int} numItems 項目数
+   * @param {int} hsize 横のマス数
+   * @param {int} vsize 縦のマス数
    */
-  constructor(numElems=3, numItems=5) {
-    this.numElems = numElems;
-    this.numItems = numItems;
-    this.maxCellSize = this.numItems * (this.numElems - 1);
-    this.minItemSize = 3;
-    this.maxItemSize = 3;
-    this.initElements();
+  constructor(hsize=14, vsize=7) {
+    this.hsize = hsize;
+    this.vsize = vsize;
     this.initCells();
-  }
-
-  /**
-   * 要素の初期化
-   */
-  initElements() {
-    this.elements = [];
-    for (let el = 0; el < this.numElems; el++) {
-      let elobj = {};
-      elobj.contents = '';
-      elobj.subelements = [];
-      elobj.items = [];
-      for (let it = 0; it < this.numItems; it++) {
-        elobj.items.push('');
-      }
-      this.elements.push(elobj);
-    }
   }
 
   /**
@@ -253,7 +232,7 @@ class Board {
       }
     }
     if (action.oplist.length > 0) {
-      Suiripuz.astack.push(action);
+      JanpaiEditor.astack.push(action);
     }
   }
 
@@ -263,11 +242,11 @@ class Board {
    */
   changeCellByClick(bi, bj, i, j, button) {
     // 通常入力モード
-    if (Suiripuz.config.inputmode === 'text') {
+    if (JanpaiEditor.config.inputmode === 'text') {
       const current_val = this.cells[bi][bj][i][j].contents;
       const current_color = this.cells[bi][bj][i][j].textcolor;
       let next_val = '';
-      let next_color = Suiripuz.drawer.colorid_in;
+      let next_color = JanpaiEditor.drawer.colorid_in;
       
       if (button === 0) {         // 左クリック
         if (current_val=== '') {
@@ -289,49 +268,28 @@ class Board {
         // 他のボタンの場合は何もしないで終わる
         return;
       }
-      Suiripuz.astack.push(new Action([new AtomicAction(bi, bj, i, j, current_val, current_color, next_val, next_color)]));
+      JanpaiEditor.astack.push(new Action([new AtomicAction(bi, bj, i, j, current_val, current_color, next_val, next_color)]));
       this.cells[bi][bj][i][j].contents = next_val;
       this.cells[bi][bj][i][j].textcolor = next_color;
     }
     // 背景色変更モード
-    else if (Suiripuz.config.inputmode === 'bg') {
+    else if (JanpaiEditor.config.inputmode === 'bg') {
       const cell_color = this.cells[bi][bj][i][j].bgcolor;
-      if (cell_color == Suiripuz.drawer.colorid_bg) {
+      if (cell_color == JanpaiEditor.drawer.colorid_bg) {
         this.cells[bi][bj][i][j].bgcolor = 0;
       } else {
-        this.cells[bi][bj][i][j].bgcolor = Suiripuz.drawer.colorid_bg;
+        this.cells[bi][bj][i][j].bgcolor = JanpaiEditor.drawer.colorid_bg;
       }
     }
     // ここにきたらおかしいのでエラー
     else {
       console.log("Something Wrong! (in Board::changeCellByClick");
-      console.log("config.inputmode: " + Suiripuz.config.inputmode);
+      console.log("config.inputmode: " + JanpaiEditor.config.inputmode);
     }
   }
 
   /* ================= Boardクラス　ユーティリティ ====================== */
 
-  /**
-   * 項目の最大長を計算
-   */
-  calcItemSize() {
-    const fontratio = Suiripuz.drawer.fontratio;
-    let maxitemsize = this.minItemSize;
-    for (let el of this.elements) {
-      let initsize = 0;
-      // サブカテゴリ分の幅を考慮
-      if (el.subelements.length > 0) {
-        initsize = 1;
-      }
-      for (let it of el.items) {
-        let itemsize = initsize + it.length * fontratio;
-        if (itemsize > maxitemsize) {
-          maxitemsize = itemsize;
-        }
-      }
-    }
-    this.maxItemSize = maxitemsize;
-  }
 }
 
 
@@ -344,40 +302,72 @@ class Board {
 class Drawer {
 
   /**
-   * コンストラクタ
-   * 描画初期値類の設定
+   * コンストラクタ：描画初期値類の設定
+   * 後続のloadImageをチェーンして呼ぶこと。
+   * どうもコンストラクタはasyncに出来ない様子。
    */
   constructor() {
     this.offset = 15;
     this.csize = $('#setsize').val() - 0;
+    this.csize_h = this.csize;
+    this.csize_v = this.csize;
     this.colors = {
       'bg': '#ffffff',
-      'bd': '#333333',
+      'bd': '#00ff00',
     };
-    this.colorid_in = 3;    // 現在のテキスト色ID
-    this.colors_in_list = [
-      [0  , 1.0, 0.3 ],  // 0: dummy (default green)
-      [0  , 1.0, 0.5 ],  // 1: red
-      [40 , 1.0, 0.4 ],  // 2: yellow
-      [120, 1.0, 0.3 ],  // 3: green (def)
-      [180, 1.0, 0.4 ],  // 4: cyan
-      [240, 1.0, 0.5 ],  // 5: blue
-      [300, 1.0, 0.5 ],  // 6: purple
-      [0  , 0  , 0.3 ],  // 7: gray
-    ];
-    this.colorid_bg = 0;
-    this.colors_bg_list = [
-      [0  , 0  , 1.0 ],  // 0: white
-      [0  , 1.0, 0.85],  // 1: red
-      [60 , 1.0, 0.85],  // 2: yellow
-      [120, 1.0, 0.85],  // 3: green (def)
-      [180, 1.0, 0.85],  // 4: cyan
-      [240, 1.0, 0.85],  // 5: blue
-      [300, 1.0, 0.85],  // 6: purple
-    ]
-    this.fontratio = 0.7;
-    this.fontdivide = 1.6;
-    this.highlight_cell = [];   // ハイライトをかける中心セル
+    this.highlight_cell = [];
+    // 牌画像のオフセット位置を管理するリスト
+    this.vpx = 63;
+    this.hpx = 47;
+    this.image_offsets = {};
+  }
+
+  /**
+   * 麻雀牌の画像素材読込 & 各牌の画像オブジェクト配列を生成
+   */
+  async loadImage() {
+    let img = null;
+    let promise = new Promise(function(resolve) {
+      img = new Image();
+      img.onload = () => {resolve()};
+      img.src = "img/pai.png";
+    });
+    await promise;
+    this.createImageDict();
+  }
+
+  /**
+   * 麻雀牌の画像を分割してimages辞書に格納
+   */
+  createImageDict() {
+    const vn = 5;      // 牌の縦の個数 
+    const hn = 10;     // 牌の横の個数
+    for (let i = 0; i < vn; i++) {
+      for (let j = 0; j < hn; j++) {
+        let pname = this.getPaiName(i, j)
+        this.image_offsets[pname] = [this.hpx * j, this.vpx * i]
+      }
+    }
+  }
+
+  /**
+   * (i, j) のインデックスから牌名を取得
+   */
+  getPaiName(i, j) {
+    switch (i) {
+      case 0:
+        return 'd' + j;
+      case 1:
+        return 'p' + j;
+      case 2:
+        return 's' + j;
+      case 3:
+        return 'm' + j;
+      case 4:
+        return 'z' + j;    // j = 8, 9 は無効
+      default:
+        throw 'ありえない牌です';
+    }
   }
 
   /**
@@ -396,18 +386,18 @@ class Drawer {
 
     // 盤面描画
     this.drawCell(board, ctx);
-    this.drawElements(board, ctx);
   }
 
   /**
    * キャンバスサイズの取得
    */
   getCanvasSize(board) {
-    let canvassize = 0;
-    canvassize += this.offset * 2;                      // 余白
-    canvassize += (board.maxItemSize + 1) * this.csize;  // 端部分
-    canvassize += board.maxCellSize * this.csize;       // セル部分
-    return [canvassize, canvassize];
+    let canvassize_h = 0, canvassize_v = 0;
+    canvassize_h += this.offset * 2;
+    canvassize_v += this.offset * 2;
+    canvassize_h += board.hsize * this.csize_h;
+    canvassize_v += board.vsize * this.csize_v;
+    return [canvassize_h, canvassize_v];
   }
 
   /**
@@ -458,241 +448,7 @@ class Drawer {
     ctx.lineWidth = 3;
     ctx.strokeRect(ofsx, ofsy, width, height);
   }
-  /**
-   * 境界部分描画（要素、項目部分）
-   */
-  drawBorderLine(board, ctx, sx, sy, gx, gy) {
-    ctx.strokeStyle = this.colors.bd;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(gx, gy);
-    ctx.stroke();
-  }
-
-  /**
-   * 要素描画関数本体
-   */
-  drawElements(board, ctx) {
-    this.drawElementsTate(board, ctx);
-    this.drawElementsYoko(board, ctx);
-  }
-
-  /**
-   * 要素描画関数（左側）
-   */
-  drawElementsTate(board, ctx) {
-    let ofsx = this.offset;
-    let ofsy = this.offset + (board.maxItemSize + 1) * this.csize;
-    // 項目描画
-    for (let j = 0; j < board.numItems * (board.numElems - 1); j++) {
-      let iofsx = ofsx + this.csize;
-      let iofsy = ofsy + j * this.csize;
-      let width = board.maxItemSize * this.csize;
-      let height = this.csize;
-      this.drawItem(board, ctx, iofsx, iofsy, width, height, j, 'yoko');
-    }
-    // サブ要素と要素の描画
-    for (let ej = 0; ej < board.numElems - 1; ej++) {
-      let eofsy = ofsy + ej * board.numItems * this.csize
-      this.drawSubElementsTate(board, ctx, ofsx, eofsy, ej);
-      this.drawContents(board, ctx, ej, ofsx, eofsy, 'tate');
-    }
-    // 境界描画
-    for (let ej = 0; ej < board.numElems; ej++) {
-      let sx = ofsx;
-      let sy = ofsy + ej * board.numItems * this.csize;
-      let gx = ofsx + (board.maxItemSize + 1) * this.csize;
-      this.drawBorderLine(board, ctx, sx, sy, gx, sy)
-    }
-    // セル接面との境界上書き
-    let sgx = ofsx + (board.maxItemSize + 1) * this.csize;
-    let gy = ofsy + board.maxCellSize * this.csize;
-    this.drawBorderLine(board, ctx, sgx, ofsy, sgx, gy);
-  }
-
-  /**
-   * 要素描画関数（上側）
-   */
-  drawElementsYoko(board, ctx) {
-    let ofsx = this.offset + (board.maxItemSize + 1) * this.csize;
-    let ofsy = this.offset;
-    // 項目描画
-    for (let i = 0; i < board.numItems * (board.numElems - 1); i++) {
-      let iofsx = ofsx + i * this.csize;
-      let iofsy = ofsy + this.csize;
-      let width = this.csize;
-      let height = board.maxItemSize * this.csize;
-      this.drawItem(board, ctx, iofsx, iofsy, width, height, i, 'tate');
-    }
-    // サブ要素と要素の描画
-    for (let ei = 0; ei < board.numElems - 1; ei++) {
-      let eofsx = ofsx + ei * board.numItems * this.csize;
-      this.drawSubElementsYoko(board, ctx, eofsx, ofsy, board.numElems - ei - 1);
-      this.drawContents(board, ctx, board.numElems - ei - 1, eofsx, ofsy, 'yoko');
-    }
-    // 境界描画
-    for (let ei = 0; ei < board.numElems; ei++) {
-      let sx = ofsx + ei * board.numItems * this.csize;
-      let sy = ofsy
-      let gy = ofsy + (board.maxItemSize + 1) * this.csize;
-      this.drawBorderLine(board, ctx, sx, sy, sx, gy)
-    }
-    // セル接面との境界上書き
-    let sgy = ofsy + (board.maxItemSize + 1) * this.csize;
-    let gx = ofsx + board.maxCellSize * this.csize;
-    this.drawBorderLine(board, ctx, ofsx, sgy, gx, sgy);
-  }
-
-  /**
-   * 項目描画関数
-   */
-  drawItem(board, ctx, ofsx, ofsy, width, height, index, mode) {
-    this.drawRect(ctx, ofsx, ofsy, width, height);
-    // 項目の取得
-    let elidx;
-    if (mode === 'yoko') {
-      elidx = parseInt(index / board.numItems);
-    } else {
-      elidx = board.numElems - parseInt(index / board.numItems) - 1;
-    }
-    // 項目テキスト描画（右揃え、下揃え）
-    let contents = board.elements[elidx].items[index % board.numItems]
-    if (mode === 'yoko') {
-      let cx = ofsx + (board.maxItemSize - (contents.length - 0.5) * this.fontratio) * this.csize;
-      let cy = ofsy + this.csize / 2;
-      for (let c of contents) {
-        this.drawChar(ctx, cx, cy, c);
-        cx += this.csize * this.fontratio;
-      }
-    } else {
-      let cx = ofsx + this.csize / 2;
-      let cy = ofsy + (board.maxItemSize - (contents.length - 0.5) * this.fontratio) * this.csize;
-      for (let c of contents) {
-        this.drawContentsTate(ctx, cx, cy, c);
-        cy += this.csize * this.fontratio;
-      }
-    }
-  }
-  /**
-   * 要素の中身描画関数
-   */
-  drawContents(board, ctx, index, ofsx, ofsy, mode) {
-    // 項目テキスト描画（中央寄せ）
-    let contents = board.elements[index].contents;
-    if (mode === 'yoko') {
-      let cx = ofsx + (board.numItems * this.csize) / 2;
-      cx -= (contents.length / 2 - 0.5) * this.csize * this.fontratio;
-      let cy = ofsy + this.csize / 2;
-      for (let c of contents) {
-        this.drawChar(ctx, cx, cy, c); 
-        cx += this.csize * this.fontratio;
-      }
-    } else {
-      let cx = ofsx + this.csize / 2;
-      let cy = ofsy + (board.numItems * this.csize) / 2;
-      cy -= (contents.length / 2 - 0.5) * this.csize * this.fontratio;
-      for (let c of contents) {
-        this.drawContentsTate(ctx, cx, cy, c);
-        cy += this.csize * this.fontratio;
-      }
-    }
-  }
-
-  /**
-   * サブ要素描画関数（左側）
-   */
-  drawSubElementsTate(board, ctx, ofsx, ofsy, elidx) {
-    for (let subel of board.elements[elidx].subelements) {
-      // 矩形領域描画
-      let sbofsx = ofsx + this.csize;
-      let sbofsy = ofsy + subel.start * this.csize;
-      let width = this.csize - 1;
-      let height = subel.size * this.csize - 1;
-      this.drawRect(ctx, sbofsx, sbofsy, width, height);
-      // サブカテゴリ左テキスト描画（中央寄せ）
-      if (subel.type === 0) {
-        let cx = sbofsx + this.csize / 2;
-        let cy = sbofsy + height / 2;
-        cy -= (subel.contents.length / 2 - 0.5) * this.csize * this.fontratio;
-        for (let c of subel.contents) {
-          this.drawContentsTate(ctx, cx, cy, c);
-          cy += this.csize * this.fontratio;
-        }
-      // サブカテゴリ左テキスト描画（上下寄せ）
-      } else {
-        let cx = sbofsx + this.csize / 2;
-        let cy = sbofsy + this.csize / 2;
-        // 前半
-        this.drawChar(ctx, cx, cy, '↑');
-        cy += this.csize * this.fontratio;
-        for (let c of subel.contents1) {
-          this.drawContentsTate(ctx, cx, cy, c);
-          cy += this.csize * this.fontratio;
-        }
-        // 後半
-        cy = sbofsy + height - (subel.contents2.length + 1 - 0.5) * this.csize * this.fontratio;
-        for (let c of subel.contents2) {
-          this.drawContentsTate(ctx, cx, cy, c);
-          cy += this.csize * this.fontratio;
-        }
-        cy = sbofsy + height - 0.5 * this.csize * this.fontratio;
-        this.drawChar(ctx, cx, cy, '↓');
-      }
-    }
-  }
-  /**
-   * 縦書き用補助関数
-   */
-  drawContentsTate(ctx, cx, cy, c) {
-    // 漢数字に変換
-    if (this.isDigit(c)) {
-      c = this.convertNum2Kanji(c);
-    } else if (c === 'ー' || c === '-') {
-      c = '|'
-    }
-    this.drawChar(ctx, cx, cy, c);
-  }
   
-  /**
-   * サブ要素描画関数（上側）
-   */
-  drawSubElementsYoko(board, ctx, ofsx, ofsy, elidx) {
-    for (let subel of board.elements[elidx].subelements) {
-      // 矩形領域描画
-      let sbofsx = ofsx + subel.start * this.csize;
-      let sbofsy = ofsy + this.csize;
-      let width = subel.size * this.csize - 1;
-      let height = this.csize - 1;
-      this.drawRect(ctx, sbofsx, sbofsy, width, height);
-      // todo: サブカテゴリ上テキスト描画
-      if (subel.type === 0) {
-        let cx = sbofsx + width / 2 - (subel.contents.length / 2 - 0.5) * this.csize * this.fontratio;
-        let cy = sbofsy + this.csize / 2;
-        for (let c of subel.contents) {
-          this.drawChar(ctx, cx, cy, c);
-          cx += this.csize * this.fontratio;
-        }
-      } else {
-        let cy = sbofsy + this.csize / 2;
-        // 前半
-        let cx = sbofsx + this.csize / 2;
-        this.drawChar(ctx, cx, cy, '←');
-        cx += this.csize * this.fontratio;
-        for (let c of subel.contents1) {
-          this.drawChar(ctx, cx, cy, c);
-          cx += this.csize * this.fontratio;
-        }
-        // 後半
-        cx = sbofsx + width - (subel.contents2.length + 0.5) * this.csize * this.fontratio;
-        for (let c of subel.contents2) {
-          this.drawChar(ctx, cx, cy, c); 
-          cx += this.csize * this.fontratio;
-        }
-        this.drawChar(ctx, cx, cy, '→');
-      }
-    }
-  }
 
   /**
    * セル描画関数：テキスト部分

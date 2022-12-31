@@ -104,7 +104,7 @@ class Action {
    */
   commit() {
     for (let op of this.oplist) {
-      op.commit(Suiripuz.board);
+      op.commit(JanpaiEditor.board);
     }
   }
   /**
@@ -112,7 +112,7 @@ class Action {
    */
   revert() {
     for (let op of this.oplist) {
-      op.revert(Suiripuz.board);
+      op.revert(JanpaiEditor.board);
     }
   }
 
