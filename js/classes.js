@@ -37,7 +37,8 @@ class Board {
       for (let j = 0; j < this.hsize; j++) {
         let cell_obj = {};
         cell_obj.contents = 'd0';       // 裏牌
-        cell_obj.contents = this.generatePaiName();   // テスト用
+        // ↓　デバッグ用：ランダムに牌を生成
+        cell_obj.contents = this.generatePaiName();
         this.cells[i].push(cell_obj);
       }
     }

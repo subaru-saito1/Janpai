@@ -217,27 +217,54 @@ function clearAnswer(evt) {
  * 盤面クリック
  */
 function clickBoard(evt) {
-  console.log("OH");
   evt.preventDefault();   // 右クリックでメニューが開かないようにする
-  // objinfo概要
-  // type:cell => bi, bj, i, j の四つ組
-  // type:item => elidx, idx
-  // type:subel => elidx, subelidx 
-  // type:elem => elidx
-  let objinfo = identifyClickPos(evt.offsetX, evt.offsetY)
+  let objinfo = identifyClickPos(evt.offsetX, evt.offsetY);
   if (objinfo.type === 'cell') {
     clickCell(objinfo, evt.button);
-  } else if (objinfo.type === 'item') {
-    clickItem(objinfo);
-  } else if (objinfo.type === 'subel') {
-    clickSubel(objinfo);
-  } else if (objinfo.type === 'elem') {
-    clickElem(objinfo);
+  } else if (objinfo.type === 'border') {
+    clickBorder(objinfo);
   } else {
     // 空白クリック時：何もしない
   }
   JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
 }
+
+/**
+ * マウス座標から盤面オブジェクト（特定の牌 or 境界線）を特定
+ */
+function identifyClickPos(mx, my) {
+  mx -= JanpaiEditor.drawer.offset;
+  my -= JanpaiEditor.drawer.offset;
+  let ch = JanpaiEditor.drawer.csize_h;
+  let cv = JanpaiEditor.drawer.csize_v;
+  let p = JanpaiEditor.drawer.pad;
+  let x = parseInt(mx / ch);
+  let y = parseInt(my / cv);
+  let ix = mx % ch;
+  let iy = my % cv;
+  if (ix > p && ix < ch - p && iy > p && iy < cv - p) {
+    return {'type': 'cell', 'i': y, 'j': x};
+  } else {
+    return {'type': 'border'};
+  }
+}
+
+/**
+ * 牌クリック時の処理 （button: 0で左、2で右）
+ */
+function clickCell(obj, button) {
+  console.log(JanpaiEditor.board.cells[obj.i][obj.j]);
+  // JanpaiEditor.board.changeCellByClick(obj.bi, obj.bj, obj.i, obj.j, button);
+}
+
+/** 
+ * 境界線クリック時の処理 (button: 0で左、2で右)
+ */
+function clickBorder(obj, button) {
+  // 保留
+  console.log('border');
+}
+
 
 /**
  * 盤面キーボード入力
@@ -265,157 +292,6 @@ function trackBoard(evt) {
     JanpaiEditor.drawer.unsetHighlight();
   }
   JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
-}
-
-/**
- * マウス座標から盤面オブジェクトを特定する関数（大枠）
- */
-function identifyClickPos(mx, my) {
-  let retobj = {}
-  mx -= JanpaiEditor.drawer.offset;
-  my -= JanpaiEditor.drawer.offset;
-  mainofsx = (JanpaiEditor.board.maxItemSize + 1) * JanpaiEditor.drawer.csize;
-  mainofsy = (JanpaiEditor.board.maxItemSize + 1) * JanpaiEditor.drawer.csize;
-  if (mx >= mainofsx && my >= mainofsy) {
-    // セル or 範囲外
-    retobj = identifyClickPosCell(mx - mainofsx, my - mainofsy);
-  } else if (mx >= mainofsx && my < mainofsy) {
-    // 上側要素枠 or 範囲外
-    retobj = identifyClickPosElYoko(mx - mainofsx, my);
-  } else if (mx < mainofsx && my >= mainofsy) {
-    // 左側要素枠 or 範囲外
-    retobj = identifyClickPosElTate(mx, my - mainofsy);
-  } else {
-    // 左上の枠外
-    retobj.type === 'none';
-  }
-  return retobj;
-}
-
-/**
- * 補正済みマウス座標からセル位置を特定
- */
-function identifyClickPosCell(mx, my) {
-  let obj = {}
-  // 変数名が長いのでエイリアス
-  let csize = JanpaiEditor.drawer.csize;
-  let elems = JanpaiEditor.board.numElems;
-  let items = JanpaiEditor.board.numItems;
-  // 座標値計算
-  let x = parseInt(mx / csize);
-  let y = parseInt(my / csize);
-  let bx = parseInt(x / items);
-  let by = parseInt(y / items);
-  let cx = parseInt(x % items);
-  let cy = parseInt(y % items);
-  // 範囲外バリデーション
-  if (bx + by >= elems - 1) {
-    obj = {'type': 'none'};
-  } else {
-    obj = {'type': 'cell', 'bi': by, 'bj': bx, 'i': cy, 'j': cx};
-  }
-  return obj;
-}
-
-/**
- * 補正済みマウス座標から上要素オブジェクトを特定
- */
-function identifyClickPosElYoko(mx, my) {
-  let obj = {}
-  // 例によってエイリアス
-  let csize = JanpaiEditor.drawer.csize;
-  let elems = JanpaiEditor.board.numElems;
-  let items = JanpaiEditor.board.numItems;
-  // 座標値計算
-  let x = Math.floor(mx / csize);
-  let y = Math.floor(my / csize);
-  // 範囲外バリデーション
-  if ((y < 0) || (x >= JanpaiEditor.board.maxCellSize)) {
-    obj = {'type': 'none'};
-  } else {
-    let bx = Math.floor(x / items);
-    let cx = parseInt(x % items);
-    let elidx = elems - bx - 1;
-    if (y === 0) {
-      // 要素
-      obj = {'type': 'elem', 'elidx': elidx, 'mode': 'yoko'};
-    } else if (y > 1) {
-      // 項目
-      obj = {'type': 'item', 'elidx': elidx, 'idx': cx, 'mode': 'tate'};
-    } else if (y === 1){
-      // サブ要素
-      let sbidx = identifySubelems(elidx, cx);
-      if (sbidx < 0) {
-        obj = {'type': 'item', 'elidx': elidx, 'idx': cx, 'mode': 'tate'};
-      } else {
-        obj = {'type': 'subel', 'elidx': elidx, 'subelidx': sbidx, 'mode': 'yoko'};
-      }
-    }
-  }
-  return obj;
-}
-
-/**
- * 補正済みマウス座標から左要素オブジェクトを特定 
- */
-function identifyClickPosElTate(mx, my) {
-  let obj = {}
-  // 例によってエイリアス
-  let csize = JanpaiEditor.drawer.csize;
-  let elems = JanpaiEditor.board.numElems;
-  let items = JanpaiEditor.board.numItems;
-  // 座標値計算
-  let x = Math.floor(mx / csize);
-  let y = Math.floor(my / csize);
-  // 範囲外バリデーション
-  if ((x < 0) || (y >= JanpaiEditor.board.maxCellSize)) {
-    obj = {'type': 'none'};
-  } else {
-    let by = Math.floor(y / items);
-    let cy = parseInt(y % items);
-    let elidx = by;
-    if (x === 0) {
-      // 要素
-      obj = {'type': 'elem', 'elidx': elidx, 'mode': 'tate'};
-    } else if (x > 1) {
-      // 項目
-      obj = {'type': 'item', 'elidx': elidx, 'idx': cy, 'mode': 'yoko'};
-    } else if (x === 1){
-      // サブ要素
-      let sbidx = identifySubelems(elidx, cy);
-      if (sbidx < 0) {
-        obj = {'type': 'item', 'elidx': elidx, 'idx': cy, 'mode': 'yoko'};
-      } else {
-        obj = {'type': 'subel', 'elidx': elidx, 'subelidx': sbidx, 'mode': 'tate'};
-      }
-    }
-  }
-  return obj;
-}
-
-/**
- * 離散化座標からどのサブ要素に属するかを判定
- * サブ要素に属さない場合は-1を返すものとする
- */
-function identifySubelems(elidx, n) {
-  let i = 0; 
-  let ret = -1;
-  for (let subel of JanpaiEditor.board.elements[elidx].subelements) {
-    if (n >= subel.start && n < subel.start + subel.size) {
-      ret = i;
-    }
-    i++;
-  }
-  return ret;
-}
-
-/**
- * セルクリック時の処理
- * button: 0で左、2で右
- */
-function clickCell(obj, button) {
-  // Boardクラスに委譲
-  JanpaiEditor.board.changeCellByClick(obj.bi, obj.bj, obj.i, obj.j, button);
 }
 
 
