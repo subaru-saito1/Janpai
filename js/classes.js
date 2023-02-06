@@ -327,13 +327,14 @@ class Drawer {
    */
   constructor() {
     this.offset = 15;
-    this.csize = $('#setsize').val() - 0;
-    this.hpx = 47;
+    this.csize = $('#setsize').val() - 0;  // 使っていない
+    this.hpx = 47;     // 牌画像サイズ
     this.vpx = 63;
-    this.csize_h = this.hpx;  // todo: csizeを係数として
-    this.csize_v = this.vpx;  // 倍率がかかるように
+    this.pad = 5;      // 余白
+    this.csize_h = this.hpx + this.pad * 2;  // 暫定：本来はcsizeから調整したい
+    this.csize_v = this.vpx + this.pad * 2;  // 余白含めたセルサイズ
     this.colors = {
-      'bg': '#ffffff',
+      'bg': '#bbbbff',
       'bd': '#00ff00',
     };
     this.highlight_cell = [];  // ハイライトするセル
@@ -428,35 +429,10 @@ class Drawer {
   drawCell(board, ctx) {
     for (let i = 0; i < board.vsize; i++) {
       for (let j = 0; j < board.hsize; j++) {
-        const ofsx = this.offset + this.csize_h * j;
-        const ofsy = this.offset + this.csize_v * i;
+        const ofsx = this.offset + this.csize_h * j + this.pad;
+        const ofsy = this.offset + this.csize_v * i + this.pad;
         let [imgofsx, imgofsy] = this.image_offsets[board.cells[i][j].contents];
         ctx.drawImage(this.img, imgofsx, imgofsy, this.hpx, this.vpx, ofsx, ofsy, this.hpx, this.vpx);
-      }
-    }
-
-    // オフセットの計算
-    const ofsx = this.offset + (board.maxItemSize + 1) * this.csize;
-    const ofsy = this.offset + (board.maxItemSize + 1) * this.csize;
-    for (let bi = 0; bi < board.numElems - 1; bi++) {
-      for (let bj = 0; bj < board.numElems - 1 - bi; bj++) {
-        // 境界オフセット値計算
-        const bdofsx = ofsx + bj * board.numItems * this.csize;
-        const bdofsy = ofsy + bi * board.numItems * this.csize;
-        const bdsize = board.numItems * this.csize;
-        for (let i = 0; i < board.numItems; i++) {
-          for (let j = 0; j < board.numItems; j++) {
-            // オフセット値計算
-            const cofsx = bdofsx + j * this.csize;
-            const cofsy = bdofsy + i * this.csize;
-            const cval = board.cells[bi][bj][i][j].contents;
-            const ccolor = board.cells[bi][bj][i][j].textcolor;
-            const cbgcolor = this.getCellColor(board, bi, bj, i, j);
-            this.drawRect(ctx, cofsx, cofsy, this.csize, this.csize, cbgcolor);
-            this.drawCellText(ctx, cofsx, cofsy, cval, ccolor);
-          }
-        }
-        this.drawBorder(board, ctx, bdofsx, bdofsy, bdsize, bdsize)
       }
     }
   }
@@ -479,50 +455,6 @@ class Drawer {
     ctx.lineWidth = 3;
     ctx.strokeRect(ofsx, ofsy, width, height);
   }
-  
-
-  /**
-   * セル描画関数：テキスト部分
-   */
-  drawCellText(ctx, ofsx, ofsy, c, ccolor) {
-    ctx.strokeStyle = this.strHsl(this.colors_in_list[ccolor]);
-    if (c === 'o') {
-      ctx.lineWidth = 2;
-      let cx = ofsx + this.csize / 2;
-      let cy = ofsy + this.csize / 2;
-      ctx.beginPath();
-      ctx.arc(cx, cy, this.csize/2.5, 0, 2*Math.PI);
-      ctx.closePath();
-      ctx.stroke();
-    } else if (c === 'x') {
-      let p = 0.1 * this.csize;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(ofsx + p, ofsy + p);
-      ctx.lineTo(ofsx + this.csize - p, ofsy + this.csize - p);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(ofsx + this.csize - p, ofsy + p);
-      ctx.lineTo(ofsx + p, ofsy + this.csize - p);
-      ctx.closePath();
-      ctx.stroke();
-    }
-  }
-
-  /**
-   * 指定された座標を中心に文字を書く
-   */
-  drawChar(ctx, x, y, ch) {
-    ctx.lineWidth = 1;
-    ctx.fillStyle = this.colors.bd;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    let fontsize = this.csize / this.fontdivide;
-    ctx.font = fontsize + 'px sans-serif';
-    ctx.fillText(ch, x, y);
-  }
-
 
   /* =========================  ハイライト設定 ============================ */
   setHighlight(bi, bj, i, j) {

@@ -43,6 +43,7 @@ function fileMenu(evt) {
 
 /**
  * 画像出力 
+ * （github pages にデプロイしないとCORSに引っかかって動かない）
  */
 function writeImg() {
   const filename = $('#writeimg_filename').val();
