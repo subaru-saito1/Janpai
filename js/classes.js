@@ -27,6 +27,8 @@ class Board {
 
   /**
    * 盤面の初期化
+   * cell_obj
+   *   contents: 'd9'
    */
   initCells() {
     this.cells = [];
@@ -45,20 +47,21 @@ class Board {
    * 境界配列の初期化
    * 暫定。外枠も番兵として入れるか、中身のデータ構造をどうするか
    * 今後のブロック分けアルゴリズムの実装による
+   * bd_obj: `o`, `x`, ``
    */
   initBorders() {
     this.hborders = [];   // 横境界 (v-1 x h のboolean配列)
     for (let i = 0; i < this.vsize - 1; i++) {
       this.hborders.push([]);
       for (let j = 0; j < this.hsize; j++) {
-        this.hborders[i].push(false);
+        this.hborders[i].push('');
       }
     }
     this.vborders = [];   // 縦境界 (v x h-1 のboolean配列)
     for (let i = 0; i < this.vsize; i++) {
       this.vborders.push([]);
       for (let j = 0; j < this.hsize; j++) {
-        this.vborders[i].push(false);
+        this.vborders[i].push('');
       }
     }
   }
@@ -218,36 +221,21 @@ class Board {
    * color_id: 削除する色
    */
   clearAns(color_id=0) {
-    let action = new Action();
-    for (let bi = 0; bi < this.numElems - 1; bi++) {
-      for (let bj = 0; bj < this.numElems - bi - 1; bj++) {
-        for (let i = 0; i < this.numItems; i++) {
-          for (let j = 0; j < this.numItems; j++) {
-            const pv = this.cells[bi][bj][i][j].contents;
-            const pc = this.cells[bi][bj][i][j].textcolor;
-            if (color_id == 0) {
-              // 解答全削除
-              this.cells[bi][bj][i][j].bgcolor = 0;
-              if (pv != '' || pc != 3) {
-                this.cells[bi][bj][i][j].contents = '';
-                this.cells[bi][bj][i][j].textcolor = 3;
-                action.oplist.push(new AtomicAction(bi, bj, i, j, pv, pc, '', 3));
-              }
-            } else if (color_id == this.cells[bi][bj][i][j].textcolor) {
-              // 色指定で削除する場合、背景色は残しておく
-              if (pv != '' || pc != 3) {
-                this.cells[bi][bj][i][j].contents = '';
-                this.cells[bi][bj][i][j].textcolor = 3;
-                action.oplist.push(new AtomicAction(bi, bj, i, j, pv, pc, '', 3));
-              }
-            }
-          }
-        }
+    // let action = new Action();
+    for (let i = 0; i < this.vsize - 1; i++) {
+      for (let j = 0; j < this.hsize; j++) {
+        this.hborders[i][j] = '';
+        // action.oplist.push(new AtomicAction(bi, bj, i, j, pv, pc, '', 3));
       }
     }
-    if (action.oplist.length > 0) {
-      JanpaiEditor.astack.push(action);
+    for (let i = 0; i < this.vsize; i++) {
+      for (let j = 0; j < this.hsize - 1; j++) {
+        this.vborders[i][j] = '';
+      }
     }
+    // if (action.oplist.length > 0) {
+    //   JanpaiEditor.astack.push(action);
+    // }
   }
 
   /**
