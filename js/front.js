@@ -220,7 +220,7 @@ function clickBoard(evt) {
   evt.preventDefault();   // 右クリックでメニューが開かないようにする
   let objinfo = identifyClickPos(evt.offsetX, evt.offsetY);
   if (objinfo.type === 'cell') {
-    clickCell(objinfo, evt.button);
+    clickPai(objinfo, evt.button);
   } else if (objinfo.type === 'border') {
     clickBorder(objinfo);
   } else {
@@ -252,10 +252,31 @@ function identifyClickPos(mx, my) {
 /**
  * 牌クリック時の処理 （button: 0で左、2で右）
  */
-function clickCell(obj, button) {
-  console.log(JanpaiEditor.board.cells[obj.i][obj.j]);
-  // JanpaiEditor.board.changeCellByClick(obj.bi, obj.bj, obj.i, obj.j, button);
+function clickPai(obj, button) {
+  let pai = JanpaiEditor.board.cells[obj.i][obj.j].contents;
+  $('.popup_overlay').removeClass('active');   // すでに出ているポップアップを消去
+  $('#paiform').val(pai);       // ここをいい感じのUIに変更
+  $('#paiform_i').val(obj.i);
+  $('#paiform_j').val(obj.j);
+  $('#popup_paiform').addClass('active');     // ポップアップ表示
+  $('#paiform').focus();
 }
+
+/**
+ * 牌入力処理
+ */
+function inputPai() {
+  // OK時の処理：項目名追加
+  let pai = $('#paiform').val();   // ここをいい感じのUIに変更
+  let i = $('#paiform_i').val();
+  let j = $('#paiform_j').val();
+  console.log(i,j,pai);
+  // ポップアップを閉じて再描画
+  $('#popup_paiform').removeClass('active');
+  JanpaiEditor.board.changeCellByClick(i, j, pai);
+  JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
+}
+
 
 /** 
  * 境界線クリック時の処理 (button: 0で左、2で右)
@@ -264,7 +285,6 @@ function clickBorder(obj, button) {
   // 保留
   console.log('border');
 }
-
 
 /**
  * 盤面キーボード入力
@@ -292,200 +312,4 @@ function trackBoard(evt) {
     JanpaiEditor.drawer.unsetHighlight();
   }
   JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
-}
-
-
-// ===================================================================================
-// テキスト入力インタフェース
-
-/**
- * 項目名ポップアップ表示
- */
-function clickItem(obj) {
-  // 一旦すべてのポップアップを閉じる
-  $('.popup_overlay').removeClass('active');
-  // 必要な要素類を取得してポップアップ表示
-  let contents = JanpaiEditor.board.elements[obj.elidx].items[obj.idx];
-  $('#itemform_elidx').val(obj.elidx);
-  $('#itemform_itemidx').val(obj.idx);
-  $('#itemform').val(contents);
-  $('#itemform_label').text('項目名入力 (要素' + (obj.elidx+1) + ', 項目' + (obj.idx+1) + ')');
-  // ポップアップ表示とフォーカス
-  $('#popup_itemform').addClass('active');
-  $('#itemform').focus();
-}
-
-/**
- * 項目名入力処理
- */
-function inputItem() {
-  // OK時の処理：項目名追加
-  let elidx = parseInt($('#itemform_elidx').val());
-  let itemidx = parseInt($('#itemform_itemidx').val());
-  let contents = removeUnderscore($('#itemform').val());
-  JanpaiEditor.board.elements[elidx].items[itemidx] = contents;
-  JanpaiEditor.board.calcItemSize();  // 最大長さの調整
-  // ポップアップを閉じて再描画
-  $('#popup_itemform').removeClass('active');
-  JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
-}
-
-/**
- * 要素名ポップアップ表示
- */
-function clickElem(obj) {
-  // 一旦すべてのポップアップを閉じる
-  $('.popup_overlay').removeClass('active');
-  // 必要な要素類を取得してポップアップ表示
-  let contents = JanpaiEditor.board.elements[obj.elidx].contents;
-  let numitems = JanpaiEditor.board.numItems;
-  $('#elemform_elidx').val(obj.elidx);
-  $('#elemform').val(contents);
-  $('#elemform_label').text('要素名入力 (要素' + (obj.elidx+1) + ')');
-  // サブ要素生成時のサイズ範囲を動的設定
-  $('#elemform_checkbox').prop('checked', false);
-  $('#elemform_substart').attr('min', 1);
-  $('#elemform_substart').attr('max', numitems);
-  $('#elemform_substart').val(1);
-  $('#elemform_subsize').attr('min', 1);
-  $('#elemform_subsize').attr('max', numitems);
-  $('#elemform_subsize').val(numitems);
-  // ポップアップ表示とフォーカス
-  $('#popup_elemform').addClass('active');
-  $('#elemform').focus();
-}
-
-/**
- * 要素名入力
- */
-function inputElement() {
-  // OK時の処理：要素名追加
-  let elidx = parseInt($('#elemform_elidx').val());
-  let contents = removeUnderscore($('#elemform').val());
-  JanpaiEditor.board.elements[elidx].contents = contents;
-  // サブ要素の追加処理
-  if ($('#elemform_checkbox').prop('checked')) {
-    let substart = parseInt($('#elemform_substart').val()) - 1;
-    let subsize = parseInt($('#elemform_subsize').val());
-    // サブ要素作成（バリデーション付き）
-    if (createSubelValidation(elidx, substart, subsize)) {
-      subel = {};
-      subel.type = 0;
-      subel.contents = '';
-      subel.start = substart;
-      subel.size = subsize;
-      JanpaiEditor.board.elements[elidx].subelements.push(subel);
-      JanpaiEditor.board.calcItemSize();  // 最大長さの調整
-    } else {
-      alert('サブ要素の範囲が重複しています。')
-    }
-  }
-  // ポップアップを閉じる
-  $('#popup_elemform').removeClass('active');
-  JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
-}
-
-/**
- * サブ要素を作成可能かどうかバリデーション
- * 指定したstart, sizeが既存のサブ要素と重ならないか判定
- */
-function createSubelValidation(elidx, start, size) {
-  // 範囲バリデーション
-  let items = JanpaiEditor.board.numItems;
-  if (start < 0 || start >= items) {
-    return false;
-  } else if (size < 1 || start + size > items) {
-    return false;
-  }
-  // 重複チェック
-  for (let subel of JanpaiEditor.board.elements[elidx].subelements) {
-    if (subel.start <= start) {
-      if (subel.start + subel.size > start) {
-        return false;
-      }
-    } else {
-      if (start + size > subel.start) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-/**
- * サブ要素名ポップアップ表示
- */
-function clickSubel(obj) {
-  // 一旦すべてのポップアップを閉じる
-  $('.popup_overlay').removeClass('active');
-  // 必要な要素類を取得してポップアップ表示
-  let subtype = JanpaiEditor.board.elements[obj.elidx].subelements[obj.subelidx].type;
-  if (subtype === 0) {
-    let contents = JanpaiEditor.board.elements[obj.elidx].subelements[obj.subelidx].contents;
-    $('#subelform_radio0').prop('checked', true);
-    $('#subelform').val(contents);
-    $('#subelform1').val('');
-    $('#subelform2').val('');
-  } else {
-    let contents1 = JanpaiEditor.board.elements[obj.elidx].subelements[obj.subelidx].contents1;
-    let contents2 = JanpaiEditor.board.elements[obj.elidx].subelements[obj.subelidx].contents2;
-    $('#subelform_radio1').prop('checked', true);
-    $('#subelform').val('');
-    $('#subelform1').val(contents1);
-    $('#subelform2').val(contents2);
-  }
-  $('#subelform_elidx').val(obj.elidx);
-  $('#subelform_subelidx').val(obj.subelidx);
-  $('#subelform_label').text('サブ要素名入力 (要素' + (obj.elidx+1) + ', 番号' + (obj.subelidx+1) + ')');
-  // ポップアップ表示とフォーカス
-  $('#popup_subelform').addClass('active');
-  if (subtype === 0) {
-    $('#subelform').focus();
-  } else {
-    $('#subelform1').focus();
-  }
-}
-
-/**
- * サブ要素名入力
- */
-function inputSubel() {
-  // OK時の処理：サブ要素名変更
-  let elidx = parseInt($('#subelform_elidx').val());
-  let subelidx = parseInt($('#subelform_subelidx').val());
-  if ($('#subelform_radio0').prop('checked')) {
-    let contents = removeUnderscore($('#subelform').val());
-    JanpaiEditor.board.elements[elidx].subelements[subelidx].type = 0;
-    JanpaiEditor.board.elements[elidx].subelements[subelidx].contents = contents;
-  } else {
-    let contents1 = removeUnderscore($('#subelform1').val());
-    let contents2 = removeUnderscore($('#subelform2').val());
-    JanpaiEditor.board.elements[elidx].subelements[subelidx].type = 1;
-    JanpaiEditor.board.elements[elidx].subelements[subelidx].contents1 = contents1;
-    JanpaiEditor.board.elements[elidx].subelements[subelidx].contents2 = contents2;
-  }
-  // ポップアップを閉じる
-  $('#popup_subelform').removeClass('active');
-  JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
-}
-
-/**
- * サブ要素削除
- */
-function deleteSubel() {
-  // 削除時に処理：サブ要素削除
-  let elidx = parseInt($('#subelform_elidx').val());
-  let subelidx = parseInt($('#subelform_subelidx').val());
-  JanpaiEditor.board.elements[elidx].subelements.splice(subelidx, 1);
-  // ポップアップを閉じる
-  $('#popup_subelform').removeClass('active');
-  JanpaiEditor.drawer.drawCanvas(JanpaiEditor.board);
-}
-
-/**
- * アンダースコアをハイフンに置換する
- * アンダースコアはURLの区切り文字に使っているため
- */
-function removeUnderscore(str) {
-  return str.replace(/_/g, '-');
 }

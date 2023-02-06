@@ -240,54 +240,14 @@ class Board {
   }
 
   /**
-   * クリック時のセル変更処理
-   * args: マスの座標(bi, bj, i, j) ＋ マウスボタン番号
+   * クリック時のセル変更処理：指定した牌番号で置き換え
    */
-  changeCellByClick(bi, bj, i, j, button) {
-    // 通常入力モード
-    if (JanpaiEditor.config.inputmode === 'text') {
-      const current_val = this.cells[bi][bj][i][j].contents;
-      const current_color = this.cells[bi][bj][i][j].textcolor;
-      let next_val = '';
-      let next_color = JanpaiEditor.drawer.colorid_in;
-      
-      if (button === 0) {         // 左クリック
-        if (current_val=== '') {
-          next_val = 'o';
-        } else if (current_val === 'o') {
-          next_val = 'x';
-        } else {
-          next_val = '';
-        }
-      } else if (button === 2) {  //右クリック
-        if (current_val === '') {
-          next_val = 'x';
-        } else if (current_val === 'x') {
-          next_val = 'o';
-        } else {
-          next_val = '';
-        }
-      } else {
-        // 他のボタンの場合は何もしないで終わる
-        return;
-      }
+  changeCellByClick(i, j, p) {
+    const current_val = this.cells[i][j].contents;
+    let next_val = p;
+    this.cells[i][j].contents = p;
+    if (false) {
       JanpaiEditor.astack.push(new Action([new AtomicAction(bi, bj, i, j, current_val, current_color, next_val, next_color)]));
-      this.cells[bi][bj][i][j].contents = next_val;
-      this.cells[bi][bj][i][j].textcolor = next_color;
-    }
-    // 背景色変更モード
-    else if (JanpaiEditor.config.inputmode === 'bg') {
-      const cell_color = this.cells[bi][bj][i][j].bgcolor;
-      if (cell_color == JanpaiEditor.drawer.colorid_bg) {
-        this.cells[bi][bj][i][j].bgcolor = 0;
-      } else {
-        this.cells[bi][bj][i][j].bgcolor = JanpaiEditor.drawer.colorid_bg;
-      }
-    }
-    // ここにきたらおかしいのでエラー
-    else {
-      console.log("Something Wrong! (in Board::changeCellByClick");
-      console.log("config.inputmode: " + JanpaiEditor.config.inputmode);
     }
   }
 

@@ -83,12 +83,8 @@ function setEventHandler() {
  
   // ======================= 消す
   // テキスト入力用インタフェース
-  $('#itemform_ok').click(inputItem);
-  $('#elemform_ok').click(inputElement);
-  $('#subelform_ok').click(inputSubel);
-  $('#subelform_del').click(deleteSubel);
-  // キャンセルボタン
-  $('#itemform_ng, #elemform_ng, #subelform_ng').click(closePopup);
+  $('#paiform_ok').click(inputPai);
+  $('#paiform_ng').click(closePopup);
   // ===========================
 
   // ページ離脱時の警告

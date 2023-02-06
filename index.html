@@ -159,7 +159,9 @@
         <div class="popup_content">
           <p id="paiform_label">牌入力</p>
           <form onsubmit="$('#paiform_ok').click(); return false;">
-            <p>TODO:ここに牌入力パネルを作る</p>
+            <input type="text" id="paiform">
+            <input type="hidden" id="paiform_i">
+            <input type="hidden" id="paiform_j">
             <input type="button" id="paiform_ok" value="OK">
             <input type="button" id="paiform_ng" value="キャンセル">
           </form>
