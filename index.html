@@ -159,7 +159,16 @@
         <div class="popup_content">
           <p id="paiform_label">牌入力</p>
           <form onsubmit="$('#paiform_ok').click(); return false;">
-            <input type="text" id="paiform">
+            <div id="paiform">
+              <!--
+              <input type="radio" name="paiform" value="d0" id="pai_d0" checked>
+              <label for="pai_d0"></label>
+              <input type="radio" name="paiform" value="p1" id="pai_p1">
+              <label for="pai_p1"></label>
+              <input type="radio" name="paiform" value="p2" id="pai_p2">
+              <label for="pai_p2"></label>
+              -->
+            </div>
             <input type="hidden" id="paiform_i">
             <input type="hidden" id="paiform_j">
             <input type="button" id="paiform_ok" value="OK">

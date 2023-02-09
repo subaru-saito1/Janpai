@@ -159,25 +159,32 @@ canvas {
   top: 30%;
 }
 
+/* 牌入力インタフェース */
+#popup_paiform {
+  width: 360px;
+  height: 350px;
+  left: calc(50% - 180px);
+  top: 30%;
+}
+#popup_paiform input[type=radio] + label {
+  display: inline-block;
+  background-size: contain;
+  width: 30px;
+  height: 40px;
+  margin: 2px;
+}
+#popup_paiform input[type=radio]:checked + label {
+  border: 3px solid #000;
+  box-sizing: border-box;
+}
+#popup_paiform input[type=radio] {
+  display: none;
+}
+
 /* テキスト入力インタフェース */
 #popup_itemform {
   width: 280px;
   height: 140px;
-  left: calc(50% - 140px);
-  top: 40%;
-}
-#popup_elemform {
-  width: 280px;
-  height: 200px;
-  left: calc(50% - 140px);
-  top: 40%;
-}
-#popup_elemform input[type="number"] {
-  width: 30px;
-}
-#popup_subelform {
-  width: 280px;
-  height: 160px;
   left: calc(50% - 140px);
   top: 40%;
 }

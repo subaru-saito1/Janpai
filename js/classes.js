@@ -37,8 +37,8 @@ class Board {
       for (let j = 0; j < this.hsize; j++) {
         let cell_obj = {};
         cell_obj.contents = 'd0';       // 裏牌
-        // ↓　デバッグ用：ランダムに牌を生成
-        cell_obj.contents = this.generatePaiName();
+        // For debug：ランダムに牌を生成
+        // cell_obj.contents = this.generatePaiName();
         this.cells[i].push(cell_obj);
       }
     }
@@ -350,6 +350,10 @@ class Drawer {
       default:
         throw 'ありえない牌です';
     }
+  }
+  // 牌名のリストを取得（ボタン生成用）
+  getPaiList() {
+    return Object.keys(this.image_offsets).slice(0, -2);
   }
 
 

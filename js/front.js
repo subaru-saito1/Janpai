@@ -255,7 +255,7 @@ function identifyClickPos(mx, my) {
 function clickPai(obj, button) {
   let pai = JanpaiEditor.board.cells[obj.i][obj.j].contents;
   $('.popup_overlay').removeClass('active');   // すでに出ているポップアップを消去
-  $('#paiform').val(pai);       // ここをいい感じのUIに変更
+  // $('#paiform').val(pai);
   $('#paiform_i').val(obj.i);
   $('#paiform_j').val(obj.j);
   $('#popup_paiform').addClass('active');     // ポップアップ表示
@@ -267,7 +267,8 @@ function clickPai(obj, button) {
  */
 function inputPai() {
   // OK時の処理：項目名追加
-  let pai = $('#paiform').val();   // ここをいい感じのUIに変更
+  let pai = $('input:radio[name="paiform"]:checked').val();   // ここをいい感じのUIに変更
+  console.log(pai);
   let i = $('#paiform_i').val();
   let j = $('#paiform_j').val();
   console.log(i,j,pai);
