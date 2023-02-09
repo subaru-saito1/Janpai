@@ -66,7 +66,7 @@ function setEventHandler() {
   // キャンバス
   $('canvas').click(clickBoard);
   $('canvas').on('contextmenu', clickBoard);  // 右クリック上書き
-  $('canvas').mousemove(trackBoard);
+  // $('canvas').mousemove(trackBoard);
   $('body').keydown(keyDownBoard);
   /*
   $('canvas').blur(blurBoard);
@@ -80,16 +80,22 @@ function setEventHandler() {
   $('#readjson_ok').click(readJson);
   // キャンセルボタン（ポップアップウィンドウを閉じる）
   $('#writeimg_ng, #readurl_ng, #writejson_ng, #readjson_ng').click(closePopup);
- 
-  // ======================= 消す
-  // テキスト入力用インタフェース
-  $('#itemform_ok').click(inputItem);
-  $('#elemform_ok').click(inputElement);
-  $('#subelform_ok').click(inputSubel);
-  $('#subelform_del').click(deleteSubel);
-  // キャンセルボタン
-  $('#itemform_ng, #elemform_ng, #subelform_ng').click(closePopup);
-  // ===========================
+
+  // 牌入力用インタフェース
+  $('#paiform_ok').click(inputPai);
+  $('#paiform_ng').click(closePopup);
+  // 牌ボタンセット
+  let radios = JanpaiEditor.drawer.getPaiList();
+  console.log(radios);
+  for (let v of radios) {
+    let rb = $('<input>').prop({
+      type: 'radio', name: 'paiform', value: v, id: 'pai_'+v, 
+    });
+    let lb = $('<label>').prop({for: 'pai_'+v});
+    lb.css('background-image', "url(img/" + v + ".png)");
+    $('#paiform').append(rb);
+    $('#paiform').append(lb);
+  }
 
   // ページ離脱時の警告
   window.addEventListener('beforeunload', function(evt) {
